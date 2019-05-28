@@ -1,0 +1,94 @@
+<div>
+    <div class="row form-group">
+        <button type="button" class="btn btn-primary col-sm-2" onclick="addTestUser()">添加测试用户</button>
+    </div>
+    <div class="row form-group">
+        <button type="button" class="btn btn-primary col-sm-2" onclick="initEnvironment()">初始化测试环境</button>
+        <span style="margin-left: 30px;">
+            <input type="text" id="simple_stock" placeholder="普通商品库存（默认为996）">
+            <input type="text" id="miaosha_stock" placeholder="秒杀商品库存（默认为996）">
+        </span>
+    </div>
+    <div class="row form-group">
+        <button type="button" class="btn btn-primary col-sm-2" onclick="loginAllUser()">登录所有用户</button>
+    </div>
+    <div class="row form-group">
+        <button type="button" class="btn btn-danger col-sm-2" onclick="doMiaoshaTest()">一键多线程秒杀</button>
+    </div>
+</div>
+<script>
+    var layer;
+    layui.use('layer', function () {
+        layer = layui.layer;
+    })
+
+    function addTestUser() {
+        var loading = g_showLoading();
+        $.ajax({
+            url: '/user/multi/create',
+            success: function (data) {
+                if (data.code == 0) {
+                    layer.close(loading);
+                    layer.msg('success');
+                }
+            }
+        })
+    }
+
+    function initEnvironment() {
+        var loading = g_showLoading();
+        $.ajax({
+            url: '/init/do',
+            data: {
+                simpleStock: $('#simple_stock').val(),
+                miaoshaStock: $('#miaosha_stock').val()
+            },
+            success: function (data) {
+                if (data.code == 0) {
+                    layer.close(loading);
+                    layer.msg('success');
+                }
+            }
+        })
+    }
+
+    function loginAllUser() {
+        var loading = g_showLoading();
+        $.ajax({
+            url: '/user/login/all',
+            success: function (data) {
+                if (data.code == 0) {
+                    layer.close(loading);
+                    layer.msg('success');
+                }
+            }
+        })
+    }
+
+    function doMiaoshaTest() {
+        var loading = g_showLoading();
+        $.ajax({
+            url: '/miaosha/test',
+            timeout: 600000,
+            success: function (data) {
+                if (data.code == 0) {
+                    layer.close(loading);
+                    layer.msg('秒杀成功，需要重新登录');
+                    $.ajax({
+                        url: '/user/logout',
+                        success: function (data) {
+                            if (data.code == 0) {
+                                window.location.href = '/portal/login';
+                            } else {
+                                layer.msg(data.msg);
+                            }
+                        }
+                    })
+                } else {
+                    layer.close(loading);
+                    layer.msg(data.msg);
+                }
+            }
+        })
+    }
+</script>

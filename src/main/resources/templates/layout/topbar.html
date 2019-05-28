@@ -1,0 +1,41 @@
+<ul class="layui-nav" lay-filter="">
+    <input type="hidden" id="user" th:value="${user}">
+    <li class="layui-nav-item"><a href="/portal/miaosha/home" id="miaoshaNav">最新活动</a></li>
+    <li class="layui-nav-item layui-this"><a href="/" id="simpleNav">产品</a></li>
+    <ul class="layui-nav layui-layout-right">
+        <li class="layui-nav-item">
+            <div th:if="${user != null}">
+                <a href="javascript:;">
+                    <img th:src="@{/static/images/icon/user_icon.jpg}" class="layui-nav-img" th:text="${user?.nickName}">
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="/portal/order/list">我的订单</a></dd>
+                </dl>
+            </div>
+            <div th:if="${user == null}">
+                <a href="/portal/login">
+                    登录
+                </a>
+            </div>
+        </li>
+        <li th:if="${user != null}" class="layui-nav-item"><a href="javascript:void(0)" onclick="logout()">退了</a></li>
+    </ul>
+</ul>
+
+<script th:inline="none">
+/*    $(document).ready(function () {
+        alert(JSON.stringify($('#user').val()));
+    })*/
+
+    var layer;
+    layui.use('layer', function () {
+        layer = layui.layer;
+    });
+
+    //注意：导航 依赖 element 模块，否则无法进行功能性操作
+    layui.use('element', function () {
+        var element = layui.element;
+
+        //…
+    });
+</script>

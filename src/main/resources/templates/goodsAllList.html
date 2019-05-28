@@ -1,0 +1,142 @@
+<div>
+    <div class="btn-group">
+        <button type="button" id="selectModelView" class="btn btn-default dropdown-toggle" data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false">
+            普通商品 <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+            <input type="hidden" id="goodsSearchModel" value="1">
+            <li><a href="javascript:void(0)" value="1" onclick="bindModel($(this))">普通商品</a></li>
+            <li><a href="javascript:void(0)" value="2" onclick="bindModel($(this))">秒杀商品</a></li>
+        </ul>
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="商品ID" aria-describedby="basic-addon2"
+                   id="inputGoodsId">
+            <span class="input-group-addon btn" type="button" onclick="reloadGoods()">搜索</span>
+        </div>
+    </div>
+
+    <table id="goodsAllList" lay-filter="test"></table>
+</div>
+
+<script type="text/html" id="titleTp2">
+    <a href="javascript:void(0)" onclick="jumpPage({{d.id}},{{d.miaosha}})">{{d.goodsName}}</a>
+</script>
+<script type="text/html" id="titleTp3">
+    {{#  if(d.miaosha == true){ }}
+    <p>{{d.miaoshaPrice}}</p>
+    {{#  } else { }}
+    <p>{{d.price}}</p>
+    {{#  } }}
+</script>
+<script type="text/html" id="titleTp4">
+    {{#  if(d.miaosha == true){ }}
+    <p>{{d.miaoshaStock}}</p>
+    {{#  } else { }}
+    <p>{{d.stock}}</p>
+    {{#  } }}
+</script>
+<script th:inline="none">
+    var layer;
+    layui.use('layer', function () {
+        layer = layui.layer;
+    });
+    //表单
+    var table;
+    layui.use('table', function () {
+        table = layui.table;
+        table.render({
+            elem: '#goodsAllList'
+            , height: 500
+            , url: '/goods/search' //数据接口
+            , where: {
+                searchVo: JSON.stringify({
+                    goodsId: $('#inputGoodsId').val(),
+                    model: $('#goodsSearchModel').val()
+                })
+            }
+            , page: true //开启分页
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'pageCount' //每页数据量的参数名，默认：limit
+            }
+            , parseData: function (res) { //res 即为原始返回的数据
+                return {
+                    "code": res.code, //解析接口状态
+                    "msg": res.msg, //解析提示文本
+                    "count": res.data.pageInfo.dataCounts, //解析数据长度
+                    "data": res.data.pageInfo.data //解析数据列表
+                };
+            }
+            , cols: [[ //表头
+                {field: 'id', title: '商品ID', fixed: 'left', width: 200}
+                ,
+                {field: 'creatorId', title: '商家ID', width: 200}
+                ,
+                {
+                    field: 'goodsName', title: '商品名称', width: 200, templet: '#titleTp2'
+                }
+                , {field: 'price', title: '商品价格', width: 200, templet: '#titleTp3'}
+                , {field: 'stock', title: '商品库存', width: 200, templet: '#titleTp4'}
+                ,{field: 'createdTime', title: '创建时间', width: 200}
+            ]]
+            , text: {
+                none: '暂无相关数据' //默认：无数据。注：该属性为 layui 2.2.5 开始新增
+            }
+        });
+    })
+
+
+    function reloadGoods() {
+        table.reload('goodsAllList', {
+            url: '/goods/search'
+            , where: {
+                searchVo: JSON.stringify({
+                    goodsId: $('#inputGoodsId').val(),
+                    model: $('#goodsSearchModel').val()
+                })
+            } //设定异步数据接口的额外参数
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'pageCount' //每页数据量的参数名，默认：limit
+            }
+            , parseData: function (res) { //res 即为原始返回的数据
+                return {
+                    "code": res.code, //解析接口状态
+                    "msg": res.msg, //解析提示文本
+                    "count": res.data.pageInfo.dataCounts, //解析数据长度
+                    "data": res.data.pageInfo.data //解析数据列表
+                };
+            }
+        });
+    }
+
+    function jumpPage(goodsId, miaosha) {
+        if (miaosha == true) {
+            //如果为秒杀活动，先判断秒杀活动是否结束
+            $.ajax({
+                url: '/miaosha/get',
+                data: {
+                    goodsId: goodsId
+                },
+                success: function (data) {
+                    if (data.code == 0) {
+                        window.location.href = "/portal/miaosha/goods/detail/" + goodsId;
+                    } else {
+                        layer.msg(data.msg);
+                    }
+                }
+            })
+        }
+        else {
+            window.location.href = "/portal/simple/goods/detail/" + goodsId;
+        }
+    }
+
+    function bindModel(e) {
+        $('#goodsSearchModel').val(e.attr('value'));
+        $('#selectModelView').html(e.text()+'<span class="caret">');
+        reloadGoods();
+    }
+</script>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+    <META HTTP-EQUIV="Cache-Control" CONTENT="no-cache">
+    <META HTTP-EQUIV="Expires" CONTENT="0">
+    <link th:href="@{/static/layui/css/layui.css}" rel="stylesheet" type="text/css">
+    <link th:href="@{/static/bootstrap/css/bootstrap.min.css}" rel="stylesheet" type="text/css">
+    <link th:href="@{/static/css/dashboard.css}" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" th:href="@{/static/extra/kindeditor/themes/default/default.css}"/>
+    <link rel="stylesheet" th:href="@{/static/extra/kindeditor/plugins/code/prettify.css}"/>
+</head>
+<body>
+
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#" id="userName" th:text="${user.nickName}"></a>
+            <ul class="layui-layout-right">
+                <li class="navbar-brand" style="float: right;"><a href="javascript:void(0)" style="color: gray;"
+                                                                  onclick="logout()">退了</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+<!-- 侧边栏 -->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar" style="position: fixed;">
+            <ul class="nav nav-sidebar" id="items">
+                <input type="hidden" value="1" id="selectItem">
+                <li class="active" id="addSimple" value="1" th:if="${user.permission == 2}"><a href="#">上架商品 <span
+                        class="sr-only">(current)</span></a>
+                </li>
+                <li id="listSimple" value="3" th:if="${user.permission == 2}"><a href="#">商品列表</a></li>
+                <li id="listMiaosha" value="4" th:if="${user.permission == 2}"><a href="#">秒杀活动</a></li>
+
+                <li id="listUser" value="5" th:if="${user.permission == 3}"><a href="#">用户管理</a></li>
+                <li id="listAllOrder" value="6" th:if="${user.permission == 3}"><a href="#">订单一览</a></li>
+                <li id="listAllGoods" value="7" th:if="${user.permission == 3}"><a href="#">商品一览</a></li>
+                <!--//TODO 恢复-->
+                <li id="testMiaosha" value="8" th:if="${user.permission == 3}"><a href="#">模拟秒杀</a></li>
+            </ul>
+        </div>
+
+        <div id="panelMain" class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" style="position: relative">
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" th:src="@{/static/js/jquery-1.9.1.min.js}"></script>
+<script type="text/javascript" charset="utf-8" th:src="@{/static/bootstrap/js/bootstrap.min.js}"></script>
+<script type="text/javascript" charset="utf-8" th:src="@{/static/layui/layui.js}"></script>
+<script charset="utf-8" th:src="@{/static/extra/kindeditor/kindeditor-all-min.js}"></script>
+<script charset="utf-8" th:src="@{/static/extra/kindeditor/lang/zh-CN.js}"></script>
+<script charset="utf-8" th:src="@{/static/extra/kindeditor/plugins/code/prettify.js}"></script>
+<script type="text/javascript" charset="utf-8" th:src="@{/static/js/common.js}"></script>
+
+
+<script>
+    var layer;
+    layui.use('layer', function () {
+        layer = layui.layer;
+    });
+
+    $(document).ready(function () {
+        // renderUser();
+        $('#addSimple').bind('click', function () {
+            changeView($(this));
+            $('#panelMain').load('/portal/goods/add');
+        });
+        $('#listSimple').bind('click', function () {
+            changeView($(this));
+            $('#panelMain').load('/portal/goods/list');
+        });
+        $('#listMiaosha').bind('click', function () {
+            changeView($(this));
+            $('#panelMain').load('/portal/miaosha/list');
+        });
+
+
+        $('#listUser').bind('click', function () {
+            changeView($(this));
+            $('#panelMain').load('/portal/user/list');
+        });
+        $('#listAllOrder').bind('click', function () {
+            changeView($(this));
+            $('#panelMain').load('/portal/order/all/list');
+        });
+        $('#listAllGoods').bind('click', function () {
+            changeView($(this));
+            $('#panelMain').load('/portal/goods/all/list');
+        });
+        //TODO 恢复
+        $('#testMiaosha').bind('click', function () {
+            changeView($(this));
+            $('#panelMain').load('/portal/miaosha/test');
+        });
+
+        if ($('#addSimple').val() != undefined) {
+            $('#addSimple').click();
+        } else if($('#listUser').val() != undefined){
+            $('#listUser').click();
+        }
+    })
+
+
+    function changeView(element) {
+        var globalSelect = $('#selectItem').val();
+        var currSelect = element.val();
+        if (globalSelect != currSelect) {
+            $('#items').children('li').removeAttr('class');
+            element.attr('class', 'active');
+            $('#selectItem').val(currSelect);
+        }
+    }
+
+    function ensure_logout(callback) {
+        layer.open({
+            title: '警告'
+            , content: '请确定操作'
+            , btn: ['确认', '取消']
+            , yes: function (index, layero) {
+                //按钮【按钮一】的回调
+                callback();
+            }
+            , btn2: function (index, layero) {
+                //按钮【按钮二】的回调
+
+                //return false 开启该代码可禁止点击该按钮关闭
+            }
+            , cancel: function () {
+                //右上角关闭回调
+
+                //return false 开启该代码可禁止点击该按钮关闭
+            }
+        });
+    }
+
+    function logout() {
+        ensure_logout(doLogout);
+    }
+
+    function doLogout() {
+        $.ajax({
+            url: '/user/logout',
+            success: function (data) {
+                if (data.code == 0) {
+                    layer.msg('success');
+                    window.location.href = '/';
+                } else {
+                    layer.msg(data.msg);
+                }
+            }
+        })
+    }
+</script>
+</body>
+</html>

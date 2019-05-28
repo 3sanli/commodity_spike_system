@@ -1,0 +1,84 @@
+<div>
+    <table id="goodsList" lay-filter="test"></table>
+</div>
+
+<script type="text/html" id="titleTpl">
+    {{#  if(d.status == -1){ }}
+    <p style="color:gray">活动已结束</p>
+    {{#  } else if(d.status == 0) { }}
+    <p style="color:green">{{d.startTime}}</p>
+    {{#  } else { }}
+    <p style="color:red">活动进行中</p>
+    {{#  } }}
+</script>
+<script th:inline="none">
+    var layer;
+    layui.use('layer', function () {
+        layer = layui.layer;
+    });
+    //TODO 秒杀活动状态显示有误
+    //表单
+    layui.use('table', function () {
+        var table = layui.table;
+        table.render({
+            elem: '#goodsList'
+            , height: 500
+            , url: '/miaosha/owner' //数据接口
+            , page: true //开启分页
+            , limits: [3, 10, 20, 40, 50]
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'pageCount' //每页数据量的参数名，默认：limit
+            }
+            , parseData: function (res) { //res 即为原始返回的数据
+                return {
+                    "code": res.code, //解析接口状态
+                    "msg": res.msg, //解析提示文本
+                    "count": res.data.pageInfo.dataCounts, //解析数据长度
+                    "data": res.data.pageInfo.data //解析数据列表
+                };
+            }
+            , cols: [[ //表头
+                {field: 'goodsName', title: '商品名称', width: 200, fixed: 'left'}
+                , {field: 'miaoshaPrice', title: '秒杀价', width: 200}
+                , {field: 'miaoshaStock', title: '秒杀库存', width: 200}
+                , {
+                    field: 'status', title: '活动状态', templet: '#titleTpl'
+                }
+                , {
+                    field: 'id', title: '操作', templet: function (d) {
+                        return '<a href="javascript:void(0);" onclick="modify(' + d.id + ')">修改</a> <a href="javascript:void(0);" onclick="over(' + d.id + ')">结束</a>'
+                    }
+                }
+            ]]
+            , text: {
+                none: '暂无相关数据' //默认：无数据。注：该属性为 layui 2.2.5 开始新增
+            }
+        });
+    });
+
+    function modify(id) {
+        $('#panelMain').load('/portal/miaosha/modify?goodsId=' + id);
+    }
+
+    function over(id) {
+        ensure(doOver, id);
+    }
+
+    function doOver(id) {
+        $.ajax({
+            url: '/miaosha/over',
+            data: {
+                goodsId: id
+            },
+            success: function (data) {
+                if (data.code == 0) {
+                    layer.msg('success');
+                    $('#panelMain').load('/portal/miaosha/list');
+                } else {
+                    layer.msg(data.msg);
+                }
+            }
+        })
+    }
+</script>

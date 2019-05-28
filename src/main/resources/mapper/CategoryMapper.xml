@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.showtan.commodity_spike_system.dao.CategoryMapper">
+    <delete id="deleteByIdList" parameterType="Integer">
+        delete * from category
+        <if test="categoryIds != null">
+            <foreach collection="List" separator="," open="where category_id in (" close=")" item="categoryId" index="i">
+                categoryId
+            </foreach>
+        </if>
+    </delete>
+</mapper>

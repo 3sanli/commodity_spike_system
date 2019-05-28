@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script th:src="@{/static/js/jquery-1.9.1.min.js}"></script>
+    <link rel="stylesheet" type="text/css" th:href="@{/static/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/static/bootstrap/css/bootstrap-theme.min.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/static/bootstrap/css/bootstrap.min.css}">
+    <script th:src="@{/static/layui/layui.js}" type="text/javascript" charset="utf-8"></script>
+    <script th:src="@{/static/bootstrap/js/bootstrap.min.js}"></script>
+    <script charset="utf-8" th:src="@{/static/js/common.js}"></script>
+    <script th:src="@{/static/jquery-validation/jquery.validate.min.js}"></script>
+    <title>register</title>
+</head>
+<body>
+<div style="width: 900px;margin: 150px auto auto auto;">
+    <div class="jumbotron" style="width: 700px;background-color: #fff;float:none;margin: auto;">
+        <h1>Hello, friend!</h1>
+        <p>Here is the special event of sanli, you can visit my
+            <a href="https://github.com/3sanli">github</a>
+            to browse my project, or you can join me and look forward to your arrival.</p>
+    </div>
+    <div class="panel panel-default" style="float:none;margin: auto;">
+        <div class="panel-body">
+            <div class="col-lg-9" style="float:none;margin: auto;">
+                <div class="input-group">
+                <span class="input-group-addon" id="basic-addon2">
+                    <i class="glyphicon glyphicon-phone"></i>
+                </span>
+                    <input type="text" id="userMobile" class="form-control" placeholder="mobile"
+                           minlength="11"
+                           maxlength="11" required
+                           aria-describedby="basic-addon2">
+                </div>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="col-lg-9" style="float:none;margin: auto;">
+                <div class="input-group">
+                <span class="input-group-addon" id="basic-addon3">
+                    <i class="glyphicon glyphicon-lock"></i>
+                </span>
+                    <input type="password" id="userPassword" class="form-control" placeholder="password"
+                           aria-describedby="basic-addon3">
+                </div>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="col-lg-9" style="float:none;margin: auto;">
+                <div class="input-group">
+                <span class="input-group-addon" id="basic-addon4">
+                    <i class="glyphicon glyphicon-lock"></i>
+                </span>
+                    <input type="password" id="userPasswordConfirm" class="form-control"
+                           placeholder="confirm your password"
+                           aria-describedby="basic-addon4">
+                </div>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="col-lg-4" style="float:right;">
+                <a href="/portal/login" class="btn btn-success" role="button">Sign in</a>
+
+                <button type="button" class="btn btn-primary" onclick="register()">
+                    Sign up
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    var mobile = $('#userMobile');
+    var password = $('#userPassword');
+    var passwordConfirm = $('#userPasswordConfirm');
+    var defaultUserPicture = '/emall/static/picture/default.png';
+
+    var layer;
+    layui.use('layer', function () {
+        layer = layui.layer;
+    });
+
+    function register() {
+        if (confirmPassword()) {
+            registerUser();
+        }
+    }
+
+    function registerUser() {
+        $.ajax({
+            data: {
+                nickName: mobile.val(),
+                mobile: mobile.val(),
+                password: password.val()
+            },
+            url: '/user/add',
+            success: function (data) {
+                if(data.code == 0){
+                    layer.msg('success');
+                    window.location.href = '/portal/login';
+                }
+                else{
+                    layer.msg(data.msg);
+                }
+            }
+        })
+    }
+
+    function confirmPassword() {
+        if (validateInput(password.val(), '密码') && validateInput(passwordConfirm.val(), '确认密码')) {
+            if(password.val() != passwordConfirm.val()){
+                layer.msg('密码不一致');
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    function validateInput(value, msg) {
+        if (value == null || value == '' || value.length == 0) {
+            layer.msg(msg + '不能为空');
+            return false
+        }
+        return true;
+    }
+</script>
+</body>
+</html>

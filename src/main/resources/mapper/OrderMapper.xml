@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.showtan.commodity_spike_system.dao.OrderMapper">
+    <select id="getSimpleCountsBySearchVo" resultType="Long">
+        select count(order_id) from order_info
+        <where>
+            <if test="goodsId != null">
+                goods_id=#{goodsId}
+            </if>
+            and
+            order_id not in(select order_id from miaosha_order)
+        </where>
+    </select>
+
+    <select id="getMiaoshaCountsBySearchVo" resultType="Long">
+        select count(miaosha_order_id) from miaosha_order
+        <where>
+            <if test="goodsId != null">
+                goods_id=#{goodsId}
+            </if>
+        </where>
+    </select>
+    <select id="listSimpleBySearchVo" resultMap="orderMap">
+        select oi.*
+        from order_info oi
+        <where>
+            <if test="searchVo.goodsId != null">
+                oi.goods_id=#{searchVo.goodsId}
+            </if>
+            and
+            oi.order_id not in(select order_id from miaosha_order)
+        </where>
+        order by oi.created_time desc
+        <if test="offset != null and take != null">
+            limit #{offset},#{take}
+        </if>
+    </select>
+
+    <select id="listMiaoshaBySearchVo" resultMap="orderMap">
+        select oi.*,mo.miaosha_order_id
+        from order_info oi right join miaosha_order mo on oi.order_id = mo.order_id
+        <where>
+            <if test="searchVo.goodsId != null">
+                 mo.goods_id=#{searchVo.goodsId}
+            </if>
+        </where>
+        order by oi.created_time desc
+        <if test="offset != null and take != null">
+            limit #{offset},#{take}
+        </if>
+    </select>
+</mapper>

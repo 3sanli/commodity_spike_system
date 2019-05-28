@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>商品秒杀平台</title>
+    <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+    <META HTTP-EQUIV="Cache-Control" CONTENT="no-cache">
+    <META HTTP-EQUIV="Expires" CONTENT="0">
+    <link rel="stylesheet" type="text/css" th:href="@{/static/css/normalize.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/static/css/dashboard.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/static/layui/css/layui.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/static/bootstrap/css/bootstrap.min.css}">
+
+
+    <script type="text/javascript" th:src="@{/static/js/jquery-1.9.1.min.js}"></script>
+    <script type="text/javascript" charset="utf-8" th:src="@{/static/layui/layui.js}"></script>
+    <script type="text/javascript" charset="utf-8" th:src="@{/static/js/common.js}"></script>
+    <script type="text/javascript" charset="utf-8" th:src="@{/static/bootstrap/js/bootstrap.min.js}"></script>
+</head>
+<body>
+    <div th:replace="layout/topbar"></div>
+    <div th:replace="${contentView}"></div>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<div xmlns:th="http://www.w3.org/1999/xhtml">
+    <div class="page-header" style="text-align: center;">
+        <h1>商品秒杀系统
+            <small>秒杀平台</small>
+        </h1>
+    </div>
+
+    <div class="center-block">
+        <form class="form-horizontal">
+            <div class="form-group" style="display: inline;">
+                <label class="col-sm-2 control-label">价格</label>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" id="inputMiaoshaPrice"
+                           th:value="${miaoshaGoods?.miaoshaPrice}"
+                           placeholder="请输入秒杀价格">
+                </div>
+            </div>
+            <div class="form-group" style="display: inline;">
+                <label class="col-sm-2 control-label">数量</label>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" id="inputMiaoshaStock"
+                           th:value="${miaoshaGoods?.miaoshaStock}"
+                           placeholder="请输入秒杀库存">
+                </div>
+            </div>
+            <div class="form-group" style="display: inline;">
+                <label class="col-sm-2 control-label">开始时间</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control" id="inputStartTime" th:value="${miaoshaGoods?.startTime}">
+                </div>
+            </div>
+            <div class="form-group" style="display: inline;">
+                <label class="col-sm-2 control-label">结束时间</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control" id="inputEndTime" th:value="${miaoshaGoods?.endTime}">
+                </div>
+            </div>
+            <div class="form-group" style="display: inline;">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button class="btn btn-default" type="button" onclick="release()">提交</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script th:inline="javascript">
+    var goodsId = /*[[${goodsId}]]*/{};
+    var miaoshaGoods = /*[[${miaoshaGoods}]]*/{};
+    var miaoshaPrice = $('#inputMiaoshaPrice');
+    var miaoshaStock = $('#inputMiaoshaStock');
+    var startTime = $('#inputStartTime');
+    var endTime = $('#inputEndTime');
+
+    var layer;
+    layui.use('layer', function () {
+        layer = layui.layer;
+    });
+
+    layui.use('laydate', function () {
+        var laydate = layui.laydate;
+
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#inputStartTime' //指定元素
+            , type: 'datetime'
+        });
+        laydate.render({
+            elem: '#inputEndTime' //指定元素
+            , type: 'datetime'
+        });
+    });
+
+    function release() {
+        $.ajax({
+            url: miaoshaGoods == null ? '/miaosha/add' : '/miaosha/modify',
+            type: 'post',
+            data: {
+                id: goodsId,
+                miaoshaPrice: miaoshaPrice.val(),
+                miaoshaStock: miaoshaStock.val(),
+                startTime: startTime.val(),
+                endTime: endTime.val()
+            },
+            success: function (data) {
+                if (data.code == 0) {
+                    layer.msg('success');
+                    $('#listMiaosha').click();
+                }else{
+                    layer.msg(data.msg);
+                }
+            }
+        })
+    }
+</script>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.showtan.commodity_spike_system.dao.GoodsMapper">
+    <resultMap id="goodsVoMap" type="top.showtan.commodity_spike_system.vo.GoodsVo">
+        <result column="goods_id" property="id"></result>
+        <association property="user" column="goods_id" select="top.showtan.commodity_spike_system.dao.UserMapper.selectByGoodsId" fetchType="eager"></association>
+        <association property="goodsPicture" column="goods_id" select="top.showtan.commodity_spike_system.dao.PictureMapper.getByGoodsId" fetchType="eager"></association>
+    </resultMap>
+    <select id="getCountsByConstant" resultType="Long">
+        select count(g.goods_id) from goods g left join goods_category gc
+        on g.goods_id = gc.goods_id
+        <where>
+            <if test="goodsName != null">
+                g.goods_name like '%${goodsName}%'
+            </if>
+            <if test="categoryId != null">
+                and gc.category_id = #{categoryId}
+            </if>
+        </where>
+    </select>
+
+    <select id="getSimpleCountsBySearchVo" resultType="Long">
+        select count(goods_id) from goods
+        <where>
+            <if test="goodsId != null">
+                goods_id=#{goodsId}
+            </if>
+        </where>
+    </select>
+
+    <select id="getMiaoshaCountsBySearchVo" resultType="Long">
+        select count(miaosha_goods_id) from miaosha_goods
+        <where>
+            <if test="goodsId != null">
+                goods_id=#{goodsId}
+            </if>
+        </where>
+    </select>
+
+    <select id="listSimpleBySearchVo" resultMap="goodsVoMap">
+        select g.*,gc.category_id
+        from goods g left join goods_category gc on g.goods_id = gc.goods_id
+        <where>
+            <if test="searchVo.goodsId != null">
+                g.goods_id = #{searchVo.goodsId}
+            </if>
+        </where>
+        order by created_time desc
+        <if test="offset != null and take != null">
+            limit #{offset},#{take}
+        </if>
+    </select>
+
+    <select id="listMiaoshaBySearchVo" resultMap="goodsVoMap">
+        select g.*,gc.category_id,mg.miaosha_price,mg.miaosha_stock,mg.start_time,mg.end_time
+        from goods g left join goods_category gc on g.goods_id = gc.goods_id right join miaosha_goods mg on g.goods_id = mg.goods_id
+        <where>
+            <if test="searchVo.goodsId != null">
+                mg.goods_id = #{searchVo.goodsId}
+            </if>
+        </where>
+        order by created_time desc
+        <if test="offset != null and take != null">
+            limit #{offset},#{take}
+        </if>
+    </select>
+</mapper>

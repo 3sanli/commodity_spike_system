@@ -1,0 +1,111 @@
+<div class="col-sm-9" style="float: inherit;margin: auto;margin-top: 20px;">
+    <div class="row" id="content">
+        <!--<div class="col-sm-6 col-md-3">
+            <div class="thumbnail" style="height: 300px;">
+                <a href="#"><img src="http://47.106.244.103:8080/group1/M00/00/01/rBIN-1zL-caATzAQAAAEzd1_Wf8828.jpg" style="height: 200px;" alt="小米9"></a>
+                <div class="caption" style="margin-top: 20px;">
+                    <div>
+                        <h5  style="color: red;float: left;display: contents;">￥99</h5>
+                    </div>
+                    <div>
+                        <span>
+                            <a href="#"><h6 style="float: left;">小米9</h6></a>
+                            <a href="#"><h6 style="color: gray;float: right;">1889</h6></a>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>-->
+    </div>
+    <div id="page" style="margin: auto;text-align: center;"></div>
+</div>
+
+<script>
+    var page = 1;
+    var pageCount = 8;
+    $(document).ready(function () {
+        $('#miaoshaNav').attr('css','layui-nav-item');
+        $('#simpleNav').attr('css','layui-nav-item layui-demo-active');
+        $.ajax({
+            url: '/goods/search',
+            type: 'post',
+            data: {
+                searchVo: JSON.stringify({
+                    model: 1
+                }),
+                page: page,
+                pageCount: pageCount
+            },
+            success: function (data) {
+                //初始化分页
+                layui.use('laypage', function () {
+                    var laypage = layui.laypage;
+                    //执行一个laypage实例
+                    laypage.render({
+                        elem: 'page' //注意，这里的 test1 是 ID，不用加 # 号
+                        , count: data.data.pageInfo.dataCounts //数据总数，从服务端得到
+                        , limit: pageCount
+                        , limits: [8, 16, 32, 64]
+                        , groups: 1
+                        , jump: function (obj, first) {
+                            //obj包含了当前分页的所有参数，比如：
+                            /*console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                            console.log(obj.limit); //得到每页显示的条数*/
+                            page = obj.curr;
+                            pageCount = obj.limit;
+                            //首次不执行
+                            if (!first) {
+                                jumpPage();
+                            }
+                        }
+                    });
+                });
+                //渲染数据
+                renderGoods(data.data.pageInfo.data);
+            }
+        })
+    });
+
+    function renderGoods(goodsList) {
+        var row = $('#content');
+        row.empty();
+        $.each(goodsList, function (i, goods) {
+            var pictureAddress = goods.goodsPicture.pictureAddress == null ? '#' : goods.goodsPicture.pictureAddress;
+            var item = $('<div class="col-sm-6 col-md-3">\n' +
+                '            <div class="thumbnail" style="height: 300px;">\n' +
+                '                <a href="/portal/simple/goods/detail/'+goods.id+'"><img src="'+pictureAddress+'" style="height: 200px;" alt='+goods.goodsName+'></a>\n' +
+                '                <div class="caption" style="margin-top: 20px;">\n' +
+                '                    <div>\n' +
+                '                        <h5  style="color: red;float: left;display: contents;">￥'+goods.price+'</h5>\n' +
+                '                    </div>\n' +
+                '                    <div>\n' +
+                '                        <span>\n' +
+                '                            <a href="/portal/simple/goods/detail/'+goods.id+'"><h6 style="float: left;">'+goods.goodsName+'</h6></a>\n' +
+                '                            <a href="#"><h6 style="color: gray;float: right;">'+goods.user.nickName+'</h6></a>\n' +
+                '                        </span>\n' +
+                '                    </div>\n' +
+                '                </div>\n' +
+                '            </div>\n' +
+                '        </div>');
+            row.append(item);
+        })
+    }
+
+    function jumpPage() {
+        $.ajax({
+            url: '/goods/search',
+            type: 'post',
+            data: {
+                searchVo: JSON.stringify({
+                    model: 1
+                }),
+                page: page,
+                pageCount: pageCount
+            },
+            success: function (data) {
+                //渲染数据
+                renderGoods(data.data.pageInfo.data);
+            }
+        })
+    }
+</script>

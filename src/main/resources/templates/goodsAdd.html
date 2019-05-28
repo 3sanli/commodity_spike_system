@@ -1,0 +1,158 @@
+<div>
+    <div class="page-header" style="text-align: center;">
+        <h1>商品秒杀系统
+            <small>秒杀平台</small>
+        </h1>
+    </div>
+
+    <div class="center-block">
+        <form class="form-horizontal">
+            <!--<div class="form-group" style="display: inline;">
+                <label class="col-sm-2 control-label">类别</label>
+                <div class="col-sm-6">
+                    <a href="#" class="form-control" id="inputGoodsCategory"></a>
+                    &lt;!&ndash;<input type="text" class="form-control" id="inputGoodsCategory">&ndash;&gt;
+                </div>
+            </div>-->
+
+            <div class="form-group" style="display: inline;">
+                <label class="col-sm-2 control-label">名称</label>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" id="inputName" th:value="${goods?.goodsName}"
+                           placeholder="请输入商品名称">
+                </div>
+            </div>
+            <div class="form-group" style="display: inline;">
+                <label class="col-sm-2 control-label">价格</label>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" id="inputPrice" th:value="${goods?.price}"
+                           placeholder="请输入价格">
+                </div>
+            </div>
+            <div class="form-group" style="display: inline;">
+                <label class="col-sm-2 control-label">数量</label>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control" id="inputStock" th:value="${goods?.stock}"
+                           placeholder="请输入商品数量">
+                </div>
+            </div>
+            <div class="form-group" style="display: inline;">
+                <label class="col-sm-2 control-label">信息</label>
+                <div class="col-sm-6">
+                <textarea class="form-control" name="content" th:text="${goods?.goodsInfo}"
+                          rows="4" id="inputInfo"
+                          placeholder="请输入商品信息"></textarea>
+                </div>
+            </div>
+            <div class="form-group" style="display: inline;">
+                <label class="col-sm-2 control-label">图片</label>
+                <input type="hidden" id="pictureUrl">
+                <div class="col-sm-6">
+                    <button type="button" class="layui-btn" id="picture">
+                        <i class="layui-icon">&#xe67c;</i>上传图片
+                    </button>
+                </div>
+            </div>
+            <div class="form-group" style="display: inline;">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button class="btn btn-default" type="button" onclick="release()">提交</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    var goods = /*[[${goods}]]*/{};
+    // var inputGoodsCategory = $('#inputGoodsCategory');
+    var goodsName = $('#inputName');
+    var goodsPrice = $('#inputPrice');
+    var goodsStock = $('#inputStock');
+    var editor;
+
+    var layer;
+    layui.use('layer', function () {
+        layer = layui.layer;
+    });
+
+    layui.use('upload', function () {
+        var upload = layui.upload;
+        var layer = layui.layer;
+
+        //执行实例
+        var uploadInst = upload.render({
+            elem: '#picture' //绑定元素
+            , url: '/picture/save' //上传接口
+            , accept: 'images'
+            , field: 'picture'
+            , acceptMime: 'image/*'
+            , done: function (data) {
+                //上传完毕回调
+                $('#pictureUrl').val(data.data);
+            }
+            , error: function () {
+                layer.msg(data.msg);
+            }
+        });
+    });
+
+    KindEditor.ready(function (K) {
+        editor = K.create('#inputInfo');
+    });
+
+    $(document).ready(function () {
+        /*$('#inputGoodsCategory').bind('click', function () {
+            layui.use('layer', function () {
+                var layer = layui.layer;
+                layer.open({
+                    type: 2,
+                    title: false,
+                    area: ['670px', '400px'],
+                    content: '/portal/category/all',
+                    resize: true
+                });
+            });
+
+        });*/
+    });
+
+    function release() {
+        // editor.sync();
+        if ($('#pictureUrl').val() == '') {
+            layer.msg('图片不能为空');
+            return false;
+        }
+        var addData = {
+            goodsName: goodsName.val(),
+            price: goodsPrice.val(),
+            stock: goodsStock.val(),
+            goodsInfo: $('#inputInfo').val(),
+            'goodsPicture.pictureAddress': $('#pictureUrl').val(),
+            //TODO 注意改变分类业务写法
+            categoryId: 1
+        };
+        var modifyData = {
+            id: goods != null ? goods.id : null,
+            goodsName: goodsName.val(),
+            price: goodsPrice.val(),
+            stock: goodsStock.val(),
+            goodsInfo: $('#inputInfo').val(),
+            'goodsPicture.pictureAddress': $('#pictureUrl').val(),
+            //TODO 注意改变分类业务写法
+            categoryId: 1
+        };
+        $.ajax({
+            url: goods == null ? '/goods/add' : '/goods/modify',
+            type: 'post',
+            data: goods == null ? addData : modifyData,
+            success: function (data) {
+                if (data.code == 0) {
+                    layer.msg('success');
+                    $('#listSimple').click();
+                } else {
+                    layer.msg(data.msg);
+                }
+            }
+        })
+    }
+</script>

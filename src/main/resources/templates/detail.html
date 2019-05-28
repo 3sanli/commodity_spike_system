@@ -1,0 +1,295 @@
+<div class="showall">
+    <input type="hidden" id="goodsId" th:value="${goodsId}">
+    <input type="hidden" id="isMiaosha" th:value="${isMiaosha}">
+    <input type="hidden" id="url">
+    <!--left -->
+    <div class="showbot">
+        <div id="showbox">
+            <img id="goods_picture" src="" width="400" height="400"/>
+        </div><!--展示图片盒子-->
+    </div>
+    <!--conet -->
+    <div class="tb-property">
+        <div class="tr-nobdr">
+            <h3 id="goods_name"></h3>
+        </div>
+        <div class="txt">
+            <div class="tex-o" style="display: block;float: left;">价格<span id="goods_price"
+                                                                           style="margin-left: 20px;"></span></div>
+            <div class="nowprice" th:if="${isMiaosha eq true}">活动价<a id="goods_miaosha_price" href="#"></a></div>
+        </div>
+        <script>
+            $(document).ready(function () {
+                var t = $("#text_box");
+                $('#min').attr('disabled', true);
+                $("#add").click(function () {
+                    t.val(parseInt(t.val()) + 1)
+                    if (parseInt(t.val()) != 1) {
+                        $('#min').attr('disabled', false);
+                    }
+
+                })
+                $("#min").click(function () {
+                    t.val(parseInt(t.val()) - 1);
+                    if (parseInt(t.val()) == 1) {
+                        $('#min').attr('disabled', true);
+                    }
+                })
+            });
+        </script>
+        <div class="gcIpt">
+            <span class="guT">数量</span>
+            <input id="min" name="" type="button" value="-"/>
+            <input id="text_box" name="" type="text" value="1" style="width:30px; text-align: center; color: #0F0F0F;"/>
+            <input id="add" name="" type="button" value="+"/>
+            <span class="Hgt" id="goods_stock"></span>
+        </div>
+        <div class="nobdr-btns" th:if="${isMiaosha eq false}">
+            <button class="btn addcart yh" onclick="doBuy()" style="width: 107px;height: 42px;">立即购买
+            </button>
+        </div>
+        <div class="nobdr-btns" id="miassha_view" th:if="${isMiaosha eq true}">
+            <button class="btn addcart yh" id="do" onclick="doMiaosha()"><img src="../static/images/ht.png"
+                                                                              th:src="@{/static/images/ht.png}"
+                                                                              width="25"
+                                                                              height="25"/>立即秒杀
+            </button>
+            <span hidden="hidden" id="remainTimeView">距离开始还剩<span id="remainTime"></span></span>
+            <img src="#" id="validateView" hidden="hidden" width="100px" height="30px" onclick="changeCode()"/>
+            <input type="text" id="validateValue" hidden="hidden" placeholder="输入结果"
+                   style="    border: #e3e3e3 solid 1px;width: 105px; height: 37px; margin-left: 17px;"/>
+        </div>
+    </div>
+</div>
+
+<!-- 商品介紹 -->
+<div class="gdetail">
+    <div class="detail">
+        <div class="active_tab" id="outer">
+            <ul class="act_title_left" id="tab">
+                <li class="act_active">
+                    <a href="#">商品介绍</a>
+                </li>
+            </ul>
+            <div class="clear"></div>
+        </div>
+        <div id="content" class="active_list">
+            <!--商品介绍-->
+            <div id="bit" class="bit">
+
+            </div>
+        </div>
+        <script>
+            $(function () {
+                window.onload = function () {
+                    var $li = $('#tab li');
+                    var $ul = $('#content ul');
+
+                    $li.mouseover(function () {
+                        var $this = $(this);
+                        var $t = $this.index();
+                        $li.removeClass();
+                        $this.addClass('act_active');
+                        $ul.css('display', 'none');
+                        $ul.eq($t).css('display', 'block');
+                    })
+                }
+            });
+        </script>
+    </div>
+</div>
+<script>
+    //判断是否为秒杀详情页面
+    var isMiaosha = $('#isMiaosha').val();
+    var goodsId = $('#goodsId').val();
+    var loading;
+    var src = '/miaosha/code';
+
+    var layer;
+    layui.use('layer', function () {
+        layer = layui.layer;
+    });
+
+    $(document).ready(function () {
+        getGoodsInfo(goodsId);
+        createMiaoshaUrl();
+    })
+
+    //获取该商品详情信息
+    function getGoodsInfo(goodsId) {
+        $.ajax({
+            url: '/goods/get',
+            data: {
+                'goodsId': goodsId
+            },
+            success: function (data) {
+                var goods = data.data;
+                if (isMiaosha == 'true') {
+                    renderMiaoshaInfo(goods);
+                } else {
+                    renderSimple(goods);
+                }
+            }
+        })
+    }
+
+    //将详情信息渲染到页面中
+    function renderSimple(goods) {
+        $('#goods_picture').attr('src', goods.goodsPicture.pictureAddress);
+        $('#goods_name').text(goods.goodsName);
+        $('#goods_price').text('￥' + goods.price);
+        $('#goods_stock').text('库存(' + goods.stock + ')');
+        $('#bit').html(goods.goodsInfo);
+    }
+
+    function renderMiaoshaInfo(goods) {
+        $('#goods_picture').attr('src', goods.goodsPicture.pictureAddress);
+        $('#goods_name').text(goods.goodsName);
+        $('#goods_price').text('￥' + goods.price);
+        $('#goods_miaosha_price').text('￥' + goods.miaoshaPrice);
+        $('#goods_stock').text('库存(' + goods.miaoshaStock + ')');
+        $('#bit').html(goods.goodsInfo);
+        setMiaoshaView(goods);
+    }
+
+    function setMiaoshaView(goods) {
+        //生成秒杀按钮
+        setMiaoshaButton(goods.over);
+        //设置秒杀时间（若未秒杀页面）
+        setRemainTime(goods.status, goods.remainTimeView);
+        //验证码视图相关
+        setValidateView(goods.status);
+    }
+
+    //设置秒杀按钮样式
+    function setMiaoshaButton(isOver) {
+        $('#min').attr('disabled', true);
+        $('#add').attr('disabled', true);
+        if (isOver) {
+            $('#do').attr('disabled', true);
+            $('#do').text('秒杀已结束');
+        }
+    }
+
+    function setRemainTime(status, remainTime) {
+        if (status == 0) {
+            $('#do').attr('disabled', true);
+            $('#do').text('即将开始...');
+            $('#remainTime').text(remainTime);
+            $('#remainTimeView').removeAttr('hidden');
+        }
+    }
+
+    function setValidateView(status) {
+        changeCode();
+        if (status == 1) {
+            $('#validateView').removeAttr('hidden');
+            $('#validateValue').removeAttr('hidden');
+        }
+    }
+
+    function doMiaosha() {
+        if ($('#user').val() == "") {
+            ensure(doLogin);
+            return false;
+        }
+        loading = g_showLoading();
+        $.ajax({
+            url: '/miaosha/' + $('#url').val() + '/do',
+            data: {
+                'goodsId': goodsId,
+                'code': $('#validateValue').val()
+            },
+            success: function (data) {
+                data = JSON.parse(data);
+                if (data.code == 0) {
+                    getResult();
+                } else {
+                    layer.close(loading);
+                    layer.msg(data.msg);
+                    changeCode();
+                }
+                if (data.code == 205) {
+                    window.location.href = '/portal/login';
+                }
+            },
+            error: function (data) {
+                layer.close(loading);
+                layer.msg(data.msg);
+            }
+        })
+    }
+
+    function createMiaoshaUrl() {
+        $.ajax({
+            url: '/miaosha/url',
+            data: {
+                goodsId: goodsId
+            },
+            success: function (data) {
+                if (data.code == 0) {
+                    $('#url').val(data.data);
+                } else {
+                    layer.msg(data.msg);
+                }
+            }
+        })
+    }
+
+    function changeCode() {
+        $("#validateView").attr("src", getCode(src));
+    }
+
+    function getCode(src) {
+        //为了防止浏览器缓存，给图片加上时间戳
+        var timeStamp = new Date().getTime();
+        return "" + src + "?goodsId=" + goodsId + "&timeStamp=" + timeStamp;
+    }
+
+    function getResult() {
+        $.ajax({
+            url: '/miaosha/result',
+            data: {
+                'goodsId': goodsId
+            },
+            success: function (data) {
+                if (data.code == 0) {
+                    layer.close(loading);
+                    layer.msg("success");
+                    window.location.href = '/portal/order/list';
+                } else if (data.data == 1) {
+                    layer.close(loading);
+                    layer.msg(data.msg);
+                } else {
+                    setTimeout(getResult(), 200);
+                }
+            }
+        })
+    }
+
+    function doBuy() {
+        if ($('#user').val() == "") {
+            ensure(doLogin);
+            return false;
+        }
+        $.ajax({
+            url: '/order/add',
+            data: {
+                goodsId: goodsId,
+                goodsCount: $('#text_box').val()
+            },
+            success: function (data) {
+                if (data.code == 0) {
+                    layer.msg('success');
+                    window.location.href = '/portal/order/list';
+                } else {
+                    layer.msg(data.msg);
+                }
+            }
+        })
+    }
+
+    function doLogin() {
+        window.location.href = '/portal/login';
+    }
+</script>

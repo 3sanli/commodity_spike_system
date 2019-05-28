@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<head xmlns:th="http://www.thymeleaf.org">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script th:src="@{/static/js/jquery-1.9.1.min.js}"></script>
+    <link rel="stylesheet" type="text/css" th:href="@{/static/bootstrap/css/bootstrap.min.css}">
+    <script th:src="@{/static/bootstrap/js/bootstrap.min.js}"></script>
+    <script th:src="@{/static/layui/layui.js}" type="text/javascript" charset="utf-8"></script>
+    <script th:src="@{/static/jquery-validation/jquery.validate.min.js}"></script>
+    <script th:src="@{/static/jquery-validation/localization/messages_zh.min.js}"></script>
+    <script th:src="@{/static/js/common.js}"></script>
+    <title>登录</title>
+</head>
+<body>
+<div style="width: 900px;margin: 50px auto auto auto;">
+    <div class="jumbotron" style="background-color: #fff;text-align: center;">
+        <h1>Hello, User!</h1>
+        <p>welcome to showtan.top</p>
+    </div>
+
+    <div class="panel panel-default" style="float:none;margin: auto;width: 450px;">
+        <div class="panel-body">
+            <div class="col-lg-9" style="float:none;margin:auto;text-align: center;">
+                <img id="userImage" style="width: 90px;" src="../static/images/icon/default.png" class="img-circle">
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="col-lg-9" style="float:none;margin: auto;">
+                <div class="input-group">
+                <span class="input-group-addon" id="basic-addon1">
+                    <i class="glyphicon glyphicon-phone"></i>
+                </span>
+                    <input type="text" id="mobile" name="mobile" class="form-control" placeholder="mobile"
+                           minlength="11"
+                           maxlength="11" required
+                           aria-describedby="basic-addon1">
+                </div>
+            </div>
+
+        </div>
+        <div class="panel-body">
+            <div class="col-lg-9" style="float:none;margin: auto;">
+                <div class="input-group">
+                <span class="input-group-addon" id="basic-addon2">
+                    <i class="glyphicon glyphicon-lock"></i>
+                </span>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="password"
+                           required
+                           aria-describedby="basic-addon2">
+                </div>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="col-lg-5" style="float:right;">
+                <button type="button" class="btn btn-success" onclick="signIn()">Sign In
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5" style="float: right;margin-top: 10px;">
+        <span>have no account?</span>
+        <a href="/portal/register">join us</a>
+    </div>
+</div>
+
+<script>
+    var mobile = $('#mobile');
+    var password = $('#password');
+    var layer;
+    layui.use('layer', function () {
+        layer = layui.layer;
+    });
+
+    function signIn() {
+        var loading = g_showLoading();
+        $.ajax({
+            data: {
+                mobile: mobile.val(),
+                password: password.val()
+            },
+            url: '/user/login',
+            success: function (data) {
+                if (data.code == 0) {
+                    layer.close(loading);
+                    layer.msg('success');
+                    switch (data.data.user.permission) {
+                        case 1:
+                            window.location.href = '/';
+                            break;
+                        case 2:
+                            window.location.href = '/portal/merchant';
+                            break;
+                        case 3:
+                            window.location.href = '/portal/merchant';
+                            break;
+                        default:
+                            break;
+                    }
+                } else {
+                    layer.msg(data.msg);
+                }
+            }
+        })
+    }
+</script>
+</body>
+</html>

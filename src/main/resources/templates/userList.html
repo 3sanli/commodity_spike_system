@@ -1,0 +1,67 @@
+<div>
+    <table id="userList" lay-filter="test"></table>
+</div>
+
+<script th:inline="none">
+    var layer;
+    layui.use('layer', function () {
+        layer = layui.layer;
+    });
+    //表单
+    layui.use('table', function () {
+        var table = layui.table;
+        table.render({
+            elem: '#userList'
+            , height: 500
+            , url: '/user/search' //数据接口
+            , page: true //开启分页
+            , limits: [3, 10, 20, 40, 50]
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'pageCount' //每页数据量的参数名，默认：limit
+            }
+            , parseData: function (res) { //res 即为原始返回的数据
+                return {
+                    "code": res.code, //解析接口状态
+                    "msg": res.msg, //解析提示文本
+                    "count": res.data.pageInfo.dataCounts, //解析数据长度
+                    "data": res.data.pageInfo.data //解析数据列表
+                };
+            }
+            , cols: [[ //表头
+                {field: 'id', title: '用户ID', width: 200, fixed: 'left'}
+                , {field: 'mobile', title: '电话', width: 200}
+                , {field: 'nickName', title: '用户昵称', width: 200}
+                , {
+                    field: 'id', title: '操作', templet: function (d) {
+                        return '<a href="javascript:void(0);" onclick="deleteUer(' + d.id + ')">强制删除</a>'
+                    }
+                }
+            ]]
+            , text: {
+                none: '暂无相关数据' //默认：无数据。注：该属性为 layui 2.2.5 开始新增
+            }
+        });
+    });
+
+    function deleteUer(id) {
+        ensure(doDeleteUser, id);
+    }
+
+    function doDeleteUser(id) {
+        $.ajax({
+            url: '/user/delete',
+            data: {
+                userId: id
+            },
+            success: function (data) {
+                if (data.code == 0) {
+                    layer.msg('success');
+                    $('#panelMain').load('/portal/user/list');
+                } else {
+                    layer.msg(data.msg);
+                }
+            }
+        })
+    }
+</script>
